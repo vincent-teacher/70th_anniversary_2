@@ -317,9 +317,9 @@
     const stage = document.getElementById('stage'); if (!stage) return;
     const hd = document.querySelector('.topbar');
     const hh = getComputedStyle(hd).position === 'sticky' ? hd.offsetHeight : 0;
-    const fitH = Math.max(320, window.innerHeight - hh - 24 - 16);   // 24 = 舞台上下內距，16 = 上方留白
+    const fitH = Math.max(320, window.innerHeight - hh - 12 - 8);    // 12 = 舞台上下內距，8 = 上下留白
     document.documentElement.style.setProperty('--fitH', fitH + 'px');
-    const top = stage.getBoundingClientRect().top + window.scrollY - hh - 8;
+    const top = stage.getBoundingClientRect().top + window.scrollY - hh - 4;
     const r = stage.getBoundingClientRect();
     if (force || r.top < hh || r.top > window.innerHeight * 0.5) window.scrollTo(0, Math.max(0, top));
   }
@@ -468,6 +468,7 @@ ${!hits.length && !arts.length ? `<div class="card empty">找不到「${esc(q)}�
   function rerender() { route(true); }
   function route(silent) {
     const r = parse();
+    document.body.classList.toggle('reading', r.view === 'read');
     const prev = st.view;
     let view = r.view;
     if (view === 'read') {
@@ -485,6 +486,7 @@ ${!hits.length && !arts.length ? `<div class="card empty">找不到「${esc(q)}�
       if (!silent) window.scrollTo(0, 0);
     }
     st.view = view;
+    document.body.classList.toggle('reading', view === 'read');   // 閱讀時選單不固定，讓頁面使用整個視窗高度
     document.querySelectorAll('[data-nav]').forEach(a => {
       const on = a.dataset.nav === view;
       a.classList.toggle('on', on);

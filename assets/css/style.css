@@ -134,7 +134,8 @@ main{flex:1;width:100%;outline:none}
 .grow{flex:1 1 10px}
 input[type=range]{accent-color:var(--magenta);width:100%;height:28px}
 /* 頁面舞台：預設「完整頁」——寬度取「欄寬」與「視窗可用高度 × 頁面寬高比」較小者，高度自動，比例不變 */
-.stage{position:relative;overflow:auto;border-radius:18px;background:#EDE2F5;padding:12px;display:flex;justify-content:center;align-items:flex-start}
+.stage{position:relative;overflow:auto;border-radius:14px;background:#EDE2F5;padding:6px;display:flex;justify-content:center;align-items:flex-start}
+body.reading .topbar{position:static}
 .stage.zoomed{justify-content:flex-start}
 .pgimg{--z:1;width:calc(min(100%, var(--fitH, 80vh) * 0.7074) * var(--z));height:auto;display:block;max-width:none;flex:none;aspect-ratio:1100/1555;object-fit:contain;border-radius:6px;box-shadow:0 10px 30px rgba(40,20,60,.25);background:#fff}
 .flip{animation:flip .45s ease-out}
