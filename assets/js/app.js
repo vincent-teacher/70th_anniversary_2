@@ -47,11 +47,11 @@
 
   /* ---------- 狀態 ---------- */
   const FS = ['16px', '18px', '21px', '24px'];
-  const ZOOMS = [0.6, 0.8, 1, 1.3, 1.6, 2];
+  const ZOOMS = [1, 1.25, 1.5, 2, 2.5]; // 1 = 完整頁（依視窗大小自動縮放）
   const st = {
     fs: store.get('fs', 1), sound: store.get('sound', true), marks: store.get('marks', []),
     visited: store.get('visited', {}), last: store.get('last', 0),
-    page: 1, zi: 2, showText: true, sf: 'all', gf: 'all', fact: 0,
+    page: 1, zi: 0, showText: true, sf: 'all', gf: 'all', fact: 0,
     qi: 0, picked: -1, score: 0, qdone: false, view: ''
   };
 
@@ -246,28 +246,29 @@
     <span style="color:#9A86AC">›</span><strong>${esc(art.t)}</strong>${art.au ? `<span style="color:#6E5A80">文／${esc(art.au)}</span>` : ''}
   </div>
   <div class="reader">
-    <div class="viewer" id="viewer" tabindex="0" aria-label="專刊頁面，可用左右方向鍵翻頁">
+    <div class="viewer" id="viewer">
+      <div class="stage ${z > 1 ? 'zoomed' : ''}" id="stage">
+        <img class="pgimg flip" src="${img(p)}" alt="專刊第 ${pad(p)} 頁：${esc(art.t)}" style="--z:${z}">
+        <button class="arrow left" id="prevA" ${p <= 1 ? 'disabled' : ''} aria-label="上一頁">${ICON.left}</button>
+        <button class="arrow right" id="nextA" ${p >= TOTAL ? 'disabled' : ''} aria-label="下一頁">${ICON.right}</button>
+      </div>
+    </div>
+    <aside class="side">
       <div class="card toolbar">
         <button class="btn pur" id="prev" ${p <= 1 ? 'disabled' : ''} aria-label="上一頁">${ICON.left}上一頁</button>
         <label>第<input type="number" id="pgInput" min="1" max="${TOTAL}" value="${p}" aria-label="頁碼">頁 / ${TOTAL}</label>
         <button class="btn pur" id="next" ${p >= TOTAL ? 'disabled' : ''} aria-label="下一頁">下一頁${ICON.right}</button>
-        <span class="grow"></span>
-        <button class="btn sm" id="zout" aria-label="縮小頁面">${ICON.zout}</button>
-        <span style="font-weight:800;min-width:3.2em;text-align:center">${Math.round(z * 100)}%</span>
-        <button class="btn sm" id="zin" aria-label="放大頁面">${ICON.zin}</button>
+        <input type="range" id="slider" min="1" max="${TOTAL}" value="${p}" aria-label="拖曳快速翻頁">
+        <button class="btn sm" id="zout" ${st.zi <= 0 ? 'disabled' : ''} aria-label="縮小頁面">${ICON.zout}</button>
+        <span style="font-weight:800;min-width:4.2em;text-align:center">${z === 1 ? '完整頁' : Math.round(z * 100) + '%'}</span>
+        <button class="btn sm" id="zin" ${st.zi >= ZOOMS.length - 1 ? 'disabled' : ''} aria-label="放大頁面">${ICON.zin}</button>
         <button class="btn ${marked ? 'pri' : ''}" id="markBtn" aria-pressed="${marked}">${ICON.mark(marked)}${marked ? '已加入書籤' : '加入書籤'}</button>
+        <div class="art-nav">
+          <button class="btn sm" id="prevArt" ${ai <= 0 ? 'disabled' : ''}>« 上一篇</button>
+          <button class="btn sm" id="nextArt" ${ai >= ARTS.length - 1 ? 'disabled' : ''}>下一篇 »</button>
+        </div>
+        <p class="note" style="margin:0">提示：可用鍵盤 ← → 鍵翻頁；放大後可捲動查看細節。</p>
       </div>
-      <input type="range" id="slider" min="1" max="${TOTAL}" value="${p}" aria-label="拖曳快速翻頁">
-      <div class="stage ${z > 1 ? 'zoomed' : ''}">
-        <img class="pgimg flip" src="${img(p)}" alt="專刊第 ${pad(p)} 頁：${esc(art.t)}" style="width:${z * 100}%">
-      </div>
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <button class="btn" id="prevArt" ${ai <= 0 ? 'disabled' : ''}>« 上一篇</button>
-        <span style="color:#6E5A80;align-self:center;font-size:.9em">提示：可用鍵盤 ← → 鍵翻頁</span>
-        <button class="btn" id="nextArt" ${ai >= ARTS.length - 1 ? 'disabled' : ''}>下一篇 »</button>
-      </div>
-    </div>
-    <aside class="side">
       <div class="card" style="border-top:8px solid ${sec.c}">
         <div style="font-size:.85em;font-weight:800;color:${sec.c}">本篇頁面　P.${pad(art.p)}–${pad(art.end)}</div>
         <div class="strip">${strip}</div>
@@ -286,6 +287,8 @@
     if (p < TOTAL) { const pre = new Image(); pre.src = img(p + 1); }
     const go = n => { location.hash = '#/read/' + n + (hl ? '?hl=' + encodeURIComponent(hl) : ''); };
     document.getElementById('prev').onclick = () => go(p - 1);
+    document.getElementById('prevA').onclick = () => go(p - 1);
+    document.getElementById('nextA').onclick = () => go(p + 1);
     document.getElementById('next').onclick = () => go(p + 1);
     document.getElementById('pgInput').onchange = e => { const n = parseInt(e.target.value, 10); if (n >= 1 && n <= TOTAL) go(n); };
     document.getElementById('slider').onchange = e => go(parseInt(e.target.value, 10));
@@ -304,9 +307,24 @@
       store.set('marks', st.marks); sfx(marked ? 'click' : 'ok');
       toast(marked ? '已移除書籤' : '已加入書籤：第 ' + pad(p) + ' 頁'); rerender();
     };
-    const hit = main.querySelector('.ocr .hit'); if (hit) hit.scrollIntoView({ block: 'center' });
-    if (firstOpen) window.scrollTo(0, 0);
+    const hit = main.querySelector('.ocr .hit');
+    if (hit) { const box = document.getElementById('ocr'); box.scrollTop = hit.offsetTop - box.offsetTop - box.clientHeight / 2; }
+    fitPage(firstOpen);
   }
+
+  /* 依視窗高度計算「完整頁」大小，並把頁面捲到圖片位置，整頁不需捲動即可看到 */
+  function fitPage(force) {
+    const stage = document.getElementById('stage'); if (!stage) return;
+    const hd = document.querySelector('.topbar');
+    const hh = getComputedStyle(hd).position === 'sticky' ? hd.offsetHeight : 0;
+    const fitH = Math.max(320, window.innerHeight - hh - 24 - 16);   // 24 = 舞台上下內距，16 = 上方留白
+    document.documentElement.style.setProperty('--fitH', fitH + 'px');
+    const top = stage.getBoundingClientRect().top + window.scrollY - hh - 8;
+    const r = stage.getBoundingClientRect();
+    if (force || r.top < hh || r.top > window.innerHeight * 0.5) window.scrollTo(0, Math.max(0, top));
+  }
+  let rsT;
+  window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (st.view === 'read') fitPage(false); }, 150); });
 
   /* ---------- 檢索 ---------- */
   function viewSearch(q) {

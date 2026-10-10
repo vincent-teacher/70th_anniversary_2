@@ -133,11 +133,21 @@ main{flex:1;width:100%;outline:none}
 .toolbar input{width:4.2em;min-height:44px;border-radius:12px;border:2px solid #CDB6E3;text-align:center;font:inherit;font-weight:800}
 .grow{flex:1 1 10px}
 input[type=range]{accent-color:var(--magenta);width:100%;height:28px}
-.stage{overflow:auto;max-height:92vh;border-radius:18px;background:#EDE2F5;padding:16px;display:flex;justify-content:center;align-items:flex-start}
+/* 頁面舞台：預設「完整頁」——寬度取「欄寬」與「視窗可用高度 × 頁面寬高比」較小者，高度自動，比例不變 */
+.stage{position:relative;overflow:auto;border-radius:18px;background:#EDE2F5;padding:12px;display:flex;justify-content:center;align-items:flex-start}
 .stage.zoomed{justify-content:flex-start}
-.pgimg{display:block;max-width:none;height:auto;flex:none;aspect-ratio:1100/1555;object-fit:contain;border-radius:6px;box-shadow:0 10px 30px rgba(40,20,60,.25);background:#fff}
+.pgimg{--z:1;width:calc(min(100%, var(--fitH, 80vh) * 0.7074) * var(--z));height:auto;display:block;max-width:none;flex:none;aspect-ratio:1100/1555;object-fit:contain;border-radius:6px;box-shadow:0 10px 30px rgba(40,20,60,.25);background:#fff}
 .flip{animation:flip .45s ease-out}
-.side{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;border:0;background:rgba(106,61,154,.85);color:#fff;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(40,20,60,.3);transition:transform .15s,background .15s}
+.arrow .icon{width:1.6em;height:1.6em}
+.arrow.left{left:10px}.arrow.right{right:10px}
+.arrow:hover{background:var(--magenta);transform:translateY(-50%) scale(1.08)}
+.arrow:disabled{display:none}
+.stage.zoomed .arrow{display:none}
+.toolbar input[type=range]{flex:1 1 100%}
+.art-nav{display:flex;justify-content:space-between;gap:8px;flex:1 1 100%}
+.side{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:14px}
 .side .card{padding:18px}
 .strip{display:flex;gap:8px;overflow-x:auto;padding:10px 2px 6px}
 .strip a{padding:4px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.75em;font-weight:700;text-decoration:none;color:var(--ink)}
@@ -214,4 +224,5 @@ input[type=range]{accent-color:var(--magenta);width:100%;height:28px}
 .popin{animation:popin .5s cubic-bezier(.2,.9,.3,1.3) both}
 .rise{animation:rise .5s ease-out both}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:900px){.topbar{position:static}}
 @media (max-width:640px){.brand-title{font-size:1.1em}.hero-in{padding-top:28px}.tiles{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
